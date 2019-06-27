@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "averagearithmetic", "averag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3numbers", "3numbers\3numbers.csproj", "{969B3E36-128C-4F17-83FB-E9D077B510AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyConverter", "CurrencyConverter\CurrencyConverter.csproj", "{A1E696FB-E8A8-470A-ACFB-E027F1865B5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{969B3E36-128C-4F17-83FB-E9D077B510AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{969B3E36-128C-4F17-83FB-E9D077B510AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{969B3E36-128C-4F17-83FB-E9D077B510AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1E696FB-E8A8-470A-ACFB-E027F1865B5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1E696FB-E8A8-470A-ACFB-E027F1865B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1E696FB-E8A8-470A-ACFB-E027F1865B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1E696FB-E8A8-470A-ACFB-E027F1865B5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
