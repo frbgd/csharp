@@ -13,15 +13,15 @@ namespace RAT_intcm
     {
         static void Main(string[] args)
         {
+            Console.Write("Getting arguments...");
             if (args.ElementAtOrDefault<string>(0) != null)
             {
                 string str = string.Join(" ", args);
                 string[] split = str.Split(new char[] { ',' });
+                Console.Write("Done\nGetting Outlook...");
                 if (Process.GetProcessesByName("OUTLOOK").Count<Process>() <= 0)
                 {
-                    Console.WriteLine("Невозможно создать письмо, так как Outlook не запущен.");
-                    Console.WriteLine("Для завершения нажмите Enter");
-                    Console.Read();
+                    Console.WriteLine("ERROR\nUnable to create message. Outlook is not running!\nExiting.");
                 }
                 else
                 {
@@ -33,33 +33,40 @@ namespace RAT_intcm
                         NameSpace NS = Application.GetNamespace("MAPI");
                         MailItem mailItem = (MailItem)((dynamic)Application.CreateItem(OlItemType.olMailItem));
                         NameSpace session = mailItem.Session;
+                        Console.Write("Done\nSearching for soc@RT.RU mailbox...");
+                        bool soc = false;
                         foreach (Account item in NS.Accounts)
                         {
-                            if (String.Compare(item.DisplayName, "soc@rt.ru", StringComparison.OrdinalIgnoreCase) == 0)
+                            if (String.Compare(item.DisplayName, "soc@RT.RU", StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 mailItem.SendUsingAccount = item;
+                                soc = true;
+                                Console.WriteLine("Done");
                                 break;
                             }
                         }
+                        if(!soc)
+                            Console.WriteLine("ERROR");
 
+                        Console.Write("Creating messasge...");
                         string rat;
-                        if (split[4] == "22")
+                        if (split[9] == "22")
                             rat = "SSH";
-                        else if (split[4] == "23")
+                        else if (split[9] == "23")
                             rat = "Telnet";
-                        else if (split[4] == "137")
+                        else if (split[9] == "137")
                             rat = "NetBIOS Name Service";
-                        else if (split[4] == "138")
+                        else if (split[9] == "138")
                             rat = "NetBIOS Session Service";
-                        else if (split[4] == "445")
+                        else if (split[9] == "445")
                             rat = "SMB";
-                        else if (split[4] == "3389" || split[4] == "13389")
+                        else if (split[9] == "3389" || split[9] == "13389")
                             rat = "RDP";
-                        else if (split[4] == "2654" || split[4] == "5900" || split[4] == "5901" || split[4] == "5902" || split[4] == "5903" || split[4] == "5904")
+                        else if (split[9] == "2654" || split[9] == "5900" || split[9] == "5901" || split[9] == "5902" || split[9] == "5903" || split[9] == "5904")
                             rat = "VNC";
-                        else if (split[4] == "4899")
+                        else if (split[9] == "4899")
                             rat = "RAdmin";
-                        else if (split[4] == "5938")
+                        else if (split[9] == "5938")
                             rat = "Teamviewer";
                         else
                             rat = "Не определено";
@@ -68,7 +75,7 @@ namespace RAT_intcm
                         mailItem.CC = "RTSOC@rt.ru;soc2line@rt.ru;";
                         mailItem.Display(mailItem);
                         MailItem variable = mailItem;
-                        string[] hTMLBody = new string[] { $"<font size ='4'><p>Добрый день!</p><p>Зафиксирован инцидент: Использование программного обеспечения для удалённого доступа({split[2]} | {rat})</p>=== Ключевая информация:===<p>Время детектирования: {split[0]}</p>", null, null, null, null, null, null, null, null, null, null };
+                        string[] hTMLBody = new string[] { $"<font size ='4'><p>Добрый день!</p><br><p>Зафиксирован инцидент: Использование программного обеспечения для удалённого доступа({split[2]} | {rat})</p>=== Ключевая информация:===<p>Время детектирования: {split[0]}</p>", null, null, null, null, null, null, null, null, null, null };
                         hTMLBody[1] = string.Format("<p>Протокол: {0}</p>", (split.ElementAtOrDefault<string>(1) != null ? split[1] : "Null"));
                         hTMLBody[2] = string.Format("<p>Инициатор активности: {0}", (split.ElementAtOrDefault<string>(2) != null ? string.Format("{0}", split[2]) : "Null"));
                         hTMLBody[3] = string.Format("<p>Активность детектирована: {0}</p>", (split.ElementAtOrDefault<string>(3) != null ? string.Format("{0}", split[3]) : "Null"));
@@ -80,22 +87,22 @@ namespace RAT_intcm
                         hTMLBody[9] = "<p>===Рекомендации в случае подтверждения инцидента===</p><p>Проверить хост на наличие нерегламентированного ПО и сервисов. Стороннее ПО удалить. Провести внеплановую проверку хоста средствами АВПО. Пользователю донести риски использования средств RAT на хосте.</p></font>";
                         hTMLBody[10] = mailItem.HTMLBody;
                         variable.HTMLBody = string.Concat(hTMLBody);
+                        Console.WriteLine("Done");
                     }
                     catch (System.Exception exception)
                     {
-                        Console.WriteLine("Message creating error.");
+                        Console.WriteLine("ERROR.");
                         Console.WriteLine(exception.Message);
-                        Console.WriteLine("For exit press Enter");
-                        Console.Read();
+                        Console.WriteLine("Exiting.");
                         return;
                     }
                 }
             }
             else
             {
-                Console.WriteLine("For exit press EnterEnter");
-                Console.Read();
+                Console.WriteLine("ERROR");
             }
+            Console.WriteLine("Exiting.");
         }
     }
 }
