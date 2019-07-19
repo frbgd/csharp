@@ -35,7 +35,7 @@ namespace RAT_intcm
                         NameSpace session = mailItem.Session;
                         foreach (Account item in NS.Accounts)
                         {
-                            if (item.DisplayName == "soc@rt.ru")
+                            if (String.Compare(item.DisplayName, "soc@rt.ru", StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 mailItem.SendUsingAccount = item;
                                 break;
@@ -75,16 +75,17 @@ namespace RAT_intcm
                         hTMLBody[4] = "<p>===Подробная информация===</p>";
                         hTMLBody[5] = string.Format("С хоста {0}:{1} подсети {2}", (split.ElementAtOrDefault<string>(2) != null ? string.Format("{0}", split[2]) : "Null"), (split.ElementAtOrDefault<string>(4) != null ? string.Format("{0}", split[4]) : "Null"), (split.ElementAtOrDefault<string>(5) != null ? string.Format("{0}", split[5]) : "Null"));
                         hTMLBody[6] = string.Format(" (активная УЗ «{0}») зафиксирована успешная попытка подключения по протоколу {1} к хосту {2} - {3}:{4} ",(split.ElementAtOrDefault<string>(6) != null ? string.Format("{0}", split[6]) : "Null"), (split.ElementAtOrDefault<string>(1) != null ? string.Format("{0}", split[1]) : "Null"), (split.ElementAtOrDefault<string>(7) != null ? string.Format("{0}", split[7]) : "Null"), (split.ElementAtOrDefault<string>(8) != null ? string.Format("{0}", split[8]) : "Null"), (split.ElementAtOrDefault<string>(9) != null ? string.Format("{0}", split[9]) : "Null"));
-                        hTMLBody[7] = string.Format("подсети {0}, что косвенно может свидетельствовать о использовании средств RAT {1}.", (split.ElementAtOrDefault<string>(10) != null ? string.Format("{0}", split[10]) : "Null"), rat);
-                        hTMLBody[8] = @"<p style=""color: red""=>***Проверяем активность на Source и Dest-хостах по каналу Device Address, пытаемся найти признаки запуска предполагаемого RAT и описываем активность на них***</p>";
+                        hTMLBody[7] = string.Format("подсети {0}, что косвенно может свидетельствовать о использовании средств RAT {1}.</p><br>", (split.ElementAtOrDefault<string>(10) != null ? string.Format("{0}", split[10]) : "Null"), rat);
+                        hTMLBody[8] = @"<p style=""color: red"">***Проверяем активность на Source и Dest-хостах по каналу Device Address, пытаемся найти признаки запуска предполагаемого RAT и описываем активность на них***</p><br>";
                         hTMLBody[9] = "<p>===Рекомендации в случае подтверждения инцидента===</p><p>Проверить хост на наличие нерегламентированного ПО и сервисов. Стороннее ПО удалить. Провести внеплановую проверку хоста средствами АВПО. Пользователю донести риски использования средств RAT на хосте.</p></font>";
                         hTMLBody[10] = mailItem.HTMLBody;
                         variable.HTMLBody = string.Concat(hTMLBody);
                     }
                     catch (System.Exception exception)
                     {
-                        Console.WriteLine("Произошла ошибка при формировании письма.");
-                        Console.WriteLine("Для завершения нажмите Enter");
+                        Console.WriteLine("Message creating error.");
+                        Console.WriteLine(exception.Message);
+                        Console.WriteLine("For exit press Enter");
                         Console.Read();
                         return;
                     }
@@ -92,7 +93,7 @@ namespace RAT_intcm
             }
             else
             {
-                Console.WriteLine("Для завершения нажмите Enter");
+                Console.WriteLine("For exit press EnterEnter");
                 Console.Read();
             }
         }
