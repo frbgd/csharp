@@ -71,20 +71,68 @@ namespace RAT_intcm
                         else
                             rat = "Не определено";
 
-                        mailItem.Subject = $"Использование программного обеспечения для удалённого доступа({split[2]} | {rat})";
+                        string target;
+                        if (!String.IsNullOrEmpty(split[8]) && !String.IsNullOrEmpty(split[9]))
+                            target = $"{split[8]} - {split[9]}";
+                        else
+                        {
+                            if (String.IsNullOrEmpty(split[8]))
+                                target = split[9];
+                            else
+                                target = split[8];
+                        }
+                        string atacker;
+                        if (!String.IsNullOrEmpty(split[2]) && !String.IsNullOrEmpty(split[3]))
+                            atacker = $"{split[2]} - {split[3]}";
+                        else
+                        {
+                            if (String.IsNullOrEmpty(split[2]))
+                                atacker = split[3];
+                            else
+                                atacker = split[2];
+                        }
+                        string device;
+                        if (!String.IsNullOrEmpty(split[12]) && !String.IsNullOrEmpty(split[4]))
+                            device = $"{split[12]} - {split[4]}";
+                        else
+                        {
+                            if (String.IsNullOrEmpty(split[12]))
+                                device = split[4];
+                            else
+                                device = split[12];
+                        }
+
+                        string atackerZone;
+                        if (split[6].Contains("RFC1918"))
+                            atackerZone = null;
+                        else
+                            atackerZone = $" сетевой зоны {split[6]}";
+                        string targetZone;
+                        if (split[11].Contains("RFC1918"))
+                            targetZone = null;
+                        else
+                            targetZone = $" сетевой зоны {split[11]}";
+
+                        string user;
+                        if (String.IsNullOrEmpty(split[7]))
+                            user = null;
+                        else
+                            user = $" (активная УЗ«{split[7]}»)";
+
+                        mailItem.Subject = $"Использование программного обеспечения для удалённого доступа({atacker} | {rat})";
                         mailItem.CC = "RTSOC@rt.ru;soc2line@rt.ru;";
                         mailItem.Display(mailItem);
                         MailItem variable = mailItem;
-                        string[] hTMLBody = new string[] { $"<font size ='4'><p>Добрый день!</p><br><p>Зафиксирован инцидент: Использование программного обеспечения для удалённого доступа({split[2]} | {rat})</p>=== Ключевая информация:===<p>Время детектирования: {split[0]}</p>", null, null, null, null, null, null, null, null, null, null };
-                        hTMLBody[1] = string.Format("<p>Протокол: {0}</p>", (split.ElementAtOrDefault<string>(1) != null ? split[1] : "Null"));
-                        hTMLBody[2] = string.Format("<p>Инициатор активности: {0}", (split.ElementAtOrDefault<string>(2) != null ? string.Format("{0}", split[2]) : "Null"));
-                        hTMLBody[3] = string.Format("<p>Активность детектирована: {0}</p>", (split.ElementAtOrDefault<string>(3) != null ? string.Format("{0}", split[3]) : "Null"));
+                        string[] hTMLBody = new string[] { $"<p>Добрый день!</p><br><p>Зафиксирован инцидент: Использование программного обеспечения для удалённого доступа({atacker} | {rat})</p>=== Ключевая информация:===<p>Время детектирования: {split[0]}</p>", null, null, null, null, null, null, null, null, null, null };
+                        hTMLBody[1] = $"<p>Протокол: {split[1]}</p>";
+                        hTMLBody[2] = $"<p>Инициатор активности: {atacker}";
+                        hTMLBody[3] = $"<p>Активность детектирована: {device}</p>";
                         hTMLBody[4] = "<p>===Подробная информация===</p>";
-                        hTMLBody[5] = string.Format("С хоста {0}:{1} подсети {2}", (split.ElementAtOrDefault<string>(2) != null ? string.Format("{0}", split[2]) : "Null"), (split.ElementAtOrDefault<string>(4) != null ? string.Format("{0}", split[4]) : "Null"), (split.ElementAtOrDefault<string>(5) != null ? string.Format("{0}", split[5]) : "Null"));
-                        hTMLBody[6] = string.Format(" (активная УЗ «{0}») зафиксирована успешная попытка подключения по протоколу {1} к хосту {2} - {3}:{4} ",(split.ElementAtOrDefault<string>(6) != null ? string.Format("{0}", split[6]) : "Null"), (split.ElementAtOrDefault<string>(1) != null ? string.Format("{0}", split[1]) : "Null"), (split.ElementAtOrDefault<string>(7) != null ? string.Format("{0}", split[7]) : "Null"), (split.ElementAtOrDefault<string>(8) != null ? string.Format("{0}", split[8]) : "Null"), (split.ElementAtOrDefault<string>(9) != null ? string.Format("{0}", split[9]) : "Null"));
-                        hTMLBody[7] = string.Format("подсети {0}, что косвенно может свидетельствовать о использовании средств RAT {1}.</p><br>", (split.ElementAtOrDefault<string>(10) != null ? string.Format("{0}", split[10]) : "Null"), rat);
+                        hTMLBody[5] = $"С хоста {atacker}:{split[5]}{atackerZone}";
+                        hTMLBody[6] = $"{user} зафиксирована успешная попытка подключения по протоколу {split[1]} к хосту {target}:{split[10]}";
+                        hTMLBody[7] = $"{targetZone}, что косвенно может свидетельствовать об использовании средств RAT {rat}.</p><br>";
                         hTMLBody[8] = @"<p style=""color: red"">***Проверяем активность на Source и Dest-хостах по каналу Device Address, пытаемся найти признаки запуска предполагаемого RAT и описываем активность на них***</p><br>";
-                        hTMLBody[9] = "<p>===Рекомендации в случае подтверждения инцидента===</p><p>Проверить хост на наличие нерегламентированного ПО и сервисов. Стороннее ПО удалить. Провести внеплановую проверку хоста средствами АВПО. Пользователю донести риски использования средств RAT на хосте.</p></font>";
+                        hTMLBody[9] = "<p>===Рекомендации в случае подтверждения инцидента===</p><p>Проверить хост на наличие нерегламентированного ПО и сервисов. Стороннее ПО удалить. Провести внеплановую проверку хоста средствами АВПО. Пользователю донести риски использования средств RAT на хосте.</p>";
                         hTMLBody[10] = mailItem.HTMLBody;
                         variable.HTMLBody = string.Concat(hTMLBody);
                         Console.WriteLine("Done");
