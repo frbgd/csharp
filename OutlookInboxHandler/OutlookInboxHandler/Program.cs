@@ -84,11 +84,11 @@ namespace OutlookInboxHandler
 
         static async Task Main(string[] args)
         {
-            List<string> addresses = new List<string>();
+            List<string> addresses = new List<string> { "127.0.0.1"};
 
             //GetAddressesFromOutlook(ref addresses);
 
-            //AddToFilterList(addresses);
+            AddToFilterList(addresses);
 
             bool status = await TelegramNotification(addresses);
         }
