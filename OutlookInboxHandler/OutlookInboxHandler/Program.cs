@@ -10,14 +10,10 @@ namespace OutlookInboxHandler
 {
     class Program
     {
-
-        static void Main(string[] args)
+        static void GetAddressesFromOutlook(ref List<string> addresses)
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
-
             Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
-
-            List<string> addresses = new List<string>();
 
             foreach (MailItem mailItem in folder.Items)
             {
@@ -45,7 +41,10 @@ namespace OutlookInboxHandler
                 else
                     break;
             }
+        }
 
+        static void AddToFilterList(List<string> addresses)
+        {
             IWebDriver driver = new FirefoxDriver();
             driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
             driver.FindElement(By.Name("username")).SendKeys("a.kucheryavenko");
@@ -63,6 +62,15 @@ namespace OutlookInboxHandler
             driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick"));
 
             driver.FindElement(By.LinkText("Log Out")).Click();
+        }
+
+        static void Main(string[] args)
+        {
+            List<string> addresses = new List<string>();
+
+            GetAddressesFromOutlook(ref addresses);
+
+            AddToFilterList(addresses);
         }
     }
 }
