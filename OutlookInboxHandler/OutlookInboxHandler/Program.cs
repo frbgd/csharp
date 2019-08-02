@@ -1,38 +1,49 @@
 ﻿using Microsoft.Office.Interop.Outlook;
 using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.Collections.Generic;
 
 namespace OutlookInboxHandler
 {
     class Program
     {
-        
+
         static void Main(string[] args)
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
 
             Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
 
-            Items box = folder.Items;
+            List<string> addresses = new List<string>();
 
-            ItemHandler itemHandler = new ItemHandler();
-            itemHandler.Start(box);
-
-            
-
-        }
-
-        public class ItemHandler
-        {
-            private void Box_ItemAdd(object Item)
+            foreach (MailItem mailItem in folder.Items)
             {
-                Console.WriteLine("Incoming Message");
-            }
+                if (mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
+                {
+                    foreach (Attachment txt in mailItem.Attachments)
+                    {
+                        var path = $"C:\\test\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h";
+                        txt.SaveAsFile(path);
 
-            public void Start(Items box)
-            {
+                        using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                        {
+                            string line;
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                string[] splitLine = line.Trim().Split(' ');
+                                if(Convert.ToInt32(splitLine[0]) >= 1000)
+                                {
+                                    addresses.Add(splitLine[1]);
+                                }
+                            }
+                        }
 
-                (new ComAwareEventInfo(typeof(ItemsEvents_Event), "ItemAdd")).AddEventHandler(box, new ItemsEvents_ItemAddEventHandler(this.Box_ItemAdd));
+
+                    }
+                    
+                }
             }
         }
     }
