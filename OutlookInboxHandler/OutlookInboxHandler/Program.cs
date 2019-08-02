@@ -17,7 +17,6 @@ namespace OutlookInboxHandler
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
             Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
-            //Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];
 
             foreach (MailItem mailItem in folder.Items)
             {
@@ -42,30 +41,32 @@ namespace OutlookInboxHandler
                         }
                     }
                 }
-                else
-                    break;
             }
         }
 
         static void AddToFilterList(List<string> addresses)
         {
             IWebDriver driver = new FirefoxDriver();
-            driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
+            driver.Navigate().GoToUrl("https://vpi1kspd.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
             driver.FindElement(By.Name("username")).SendKeys("a.kucheryavenko");
             driver.FindElement(By.Name("password")).SendKeys("4_c`&MjLjq");
             driver.FindElement(By.Name("Submit")).Click();
 
-            driver.FindElement(By.CssSelector(".alt:nth-child(5) a"));
+            System.Threading.Thread.Sleep(10000);
+
+            driver.FindElement(By.CssSelector(".alt:nth-child(5) a")).Click();
             IWebElement filterForm = driver.FindElement(By.Name("filter_MitigationRealTimeExpandBWList_bcfea401019cccd2db81b44b4b11d7c9"));
             string filter = filterForm.Text;
             foreach (string address in addresses)
             {
-                filter = $"drop src host {address}\n{filter}";
+                filter = $"drop src host {address}\r\n{filter}";
             }
+            filterForm.Clear();
             filterForm.SendKeys(filter);
-            driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick"));
+            driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick")).Click();
 
-            driver.FindElement(By.LinkText("Log Out")).Click();
+            System.Threading.Thread.Sleep(10000);
+            driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
         }
 
         static async Task<bool> TelegramNotification(List<string> addresses)
@@ -75,7 +76,13 @@ namespace OutlookInboxHandler
             var handler = new HttpClientHandler { Proxy = proxy };
             HttpClient client = new HttpClient(handler, true);
 
-            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Hello%20World"));
+            string notificationBody = "";
+            foreach(string address in addresses)
+            {
+                notificationBody = $"{notificationBody}{address}\n";
+            }
+
+            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text={notificationBody}"));
 
             Console.WriteLine("HTTPS GET: " + await result.Content.ReadAsStringAsync());
 
@@ -84,11 +91,11 @@ namespace OutlookInboxHandler
 
         static async Task Main(string[] args)
         {
-            List<string> addresses = new List<string> { "127.0.0.1"};
+            List<string> addresses = new List<string>();
 
-            //GetAddressesFromOutlook(ref addresses);
+            GetAddressesFromOutlook(ref addresses);
 
-            AddToFilterList(addresses);
+            //AddToFilterList(addresses);
 
             bool status = await TelegramNotification(addresses);
         }
