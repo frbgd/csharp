@@ -5,6 +5,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using MihaZupan;
 
 namespace OutlookInboxHandler
 {
@@ -14,6 +17,7 @@ namespace OutlookInboxHandler
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
             Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
+            //Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];
 
             foreach (MailItem mailItem in folder.Items)
             {
@@ -21,7 +25,7 @@ namespace OutlookInboxHandler
                 {
                     foreach (Attachment txt in mailItem.Attachments)
                     {
-                        var path = $"C:\\test\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h";
+                        var path = $"C:\\ELK\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h";
                         txt.SaveAsFile(path);
 
                         using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
@@ -64,13 +68,29 @@ namespace OutlookInboxHandler
             driver.FindElement(By.LinkText("Log Out")).Click();
         }
 
-        static void Main(string[] args)
+        static async Task<bool> TelegramNotification(List<string> addresses)
+        {
+            var proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy");
+            //var proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew");
+            var handler = new HttpClientHandler { Proxy = proxy };
+            HttpClient client = new HttpClient(handler, true);
+
+            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Hello%20World"));
+
+            Console.WriteLine("HTTPS GET: " + await result.Content.ReadAsStringAsync());
+
+            return true;
+        }
+
+        static async Task Main(string[] args)
         {
             List<string> addresses = new List<string>();
 
-            GetAddressesFromOutlook(ref addresses);
+            //GetAddressesFromOutlook(ref addresses);
 
-            AddToFilterList(addresses);
+            //AddToFilterList(addresses);
+
+            bool status = await TelegramNotification(addresses);
         }
     }
 }
