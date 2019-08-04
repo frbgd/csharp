@@ -28,7 +28,7 @@ namespace OutlookInboxHandler
         {
             _windowsFolderPath = windowsFolderPath;
             _progName = progName;
-            _logFileName = $"{_progName}-{DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss-fff")}.log";
+            _logFileName = $"{_progName}-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss-fff")}.log";
             if (!Directory.Exists(_windowsFolderPath))
             {
                 Directory.CreateDirectory($"{_windowsFolderPath}\\Logs");
@@ -37,10 +37,10 @@ namespace OutlookInboxHandler
 
         public void Log(string message)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
+            Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}\t{message}");
             using (var sw = new StreamWriter($"{_windowsFolderPath}\\Logs\\{_logFileName}", true, System.Text.Encoding.Default))
             {
-                sw.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
+                sw.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}\t{message}");
             }
         }
     }
