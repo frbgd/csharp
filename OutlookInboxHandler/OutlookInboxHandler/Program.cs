@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Linq;
 using MihaZupan;
 
 namespace OutlookInboxHandler
@@ -92,13 +93,23 @@ namespace OutlookInboxHandler
 
         static async Task Main(string[] args)
         {
-            List<string> addresses = new List<string>();
+            try
+            {
+                List<string> addresses = new List<string>();
 
-            GetAddressesFromOutlook(ref addresses);
+                GetAddressesFromOutlook(ref addresses);
 
-            AddToFilterList(addresses);
+                if (addresses.Any())
+                {
+                    AddToFilterList(addresses);
+                }
 
-            bool status = await TelegramNotification(addresses);
+                bool status = await TelegramNotification(addresses);
+            }
+            catch
+            {
+
+            }
         }
     }
 }
