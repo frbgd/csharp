@@ -20,16 +20,20 @@ namespace OutlookInboxHandler
             _mailFolderPath = mailFolderPath;
             _windowsFolderPath = windowsFolderPath;
             _logger = logger;
+
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
             _logger.Log("Done");
+
             _logger.Log($"Searching for {_mailFolderPath}...");
-            foreach(var folder in _mailFolderPath.Split('\\'))
+            var splittedPath = _mailFolderPath.Split('\\');
+            _folder = (Folder)_NS.Folders[splittedPath[0]];     //здесь может выброситься ex.Source == "Microsoft Outlook"
+            for (int i = 1; i < splittedPath.Count(); i++)
             {
-                _folder = (Folder)_NS.Folders[folder];
-            }
-            //_folder = (Folder)_NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
+                _folder = (Folder)_folder.Folders[splittedPath[i]];     //здесь может выброситься ex.Source == "Microsoft Outlook"
+            }     
             _logger.Log("Done");
+
             _logger.Log($"Searching for directory {_windowsFolderPath}");
             if (!Directory.Exists($"{_windowsFolderPath}"))
             {
