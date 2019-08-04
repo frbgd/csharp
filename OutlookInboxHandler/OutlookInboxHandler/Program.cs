@@ -17,30 +17,53 @@ namespace OutlookInboxHandler
         static void GetAddressesFromOutlook(ref List<string> addresses)
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
-            //Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
-            Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];
+            Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
+            //Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];
 
             foreach (MailItem mailItem in folder.Items)
             {
                 if (mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
                 {
-                    foreach (Attachment txt in mailItem.Attachments)
+                    if (mailItem.Attachments.Count > 0)
                     {
-                        var path = $"C:\\ELK\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h";
-                        txt.SaveAsFile(path);
-
-                        using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                        foreach (Attachment txt in mailItem.Attachments)
                         {
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
+                            if (!Directory.Exists("C:\\ELK"))
                             {
-                                string[] splitLine = line.Trim().Split(' ');
-                                if (Convert.ToInt32(splitLine[0]) >= 1000)
+                                Directory.CreateDirectory("C:\\ELK");
+                            }
+                            var path = $"C:\\ELK\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
+                            txt.SaveAsFile(path);
+
+                            using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                            {
+                                string line;
+                                while ((line = sr.ReadLine()) != null)
                                 {
-                                    addresses.Add(splitLine[1]);
+                                    string[] splitLine = line.Trim().Split(' ');
+                                    if(splitLine.Count() != 2)      //если неверный формат строки (файла), переходим к следующему файлу - добавить в уведомление
+                                    {
+                                        break;
+                                    }
+                                    if (Convert.ToInt32(splitLine[0]) >= 1000)
+                                    {
+                                        addresses.Add(splitLine[1]);
+                                    }
                                 }
                             }
                         }
+                    }
+                    else            //если в письме нет вложений - добавить в уведомление
+                    {
+
+                    }
+                    try
+                    {
+                        mailItem.Move(folder.Folders["Done"]);
+                    }
+                    catch       //не существует папка для перемещения - добавить в уведомление
+                    {
+
                     }
                 }
             }
@@ -101,14 +124,21 @@ namespace OutlookInboxHandler
 
                 if (addresses.Any())
                 {
-                    AddToFilterList(addresses);
+                    //AddToFilterList(addresses);
                 }
 
                 bool status = await TelegramNotification(addresses);
             }
-            catch
+            catch(System.Exception ex)
             {
+                if(ex.Source == "mscorlib")     //если закрыт OutLook - уведомить
+                {
 
+                }
+                if (ex.Source == "Microsoft Outlook")        //если неверный путь к папке - уведомить
+                {
+
+                }
             }
         }
     }
