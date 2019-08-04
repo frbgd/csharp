@@ -225,6 +225,8 @@ namespace OutlookInboxHandler
 
                 GetAddressesFromOutlook(ref addresses);
 
+                addresses.Distinct().ToList<string>();
+
                 if (addresses.Any())
                 {
                     AddToFilterList(addresses, browser, args[1], args[2]);
