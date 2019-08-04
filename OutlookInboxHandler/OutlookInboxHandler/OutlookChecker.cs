@@ -9,17 +9,19 @@ namespace OutlookInboxHandler
 {
     public class OutlookChecker
     {
-        NameSpace NS;
-        Folder folder;
+        NameSpace _NS;
+        Folder _folder;
+        Logger _logger;
 
-        public OutlookChecker()
+        public OutlookChecker(Logger logger)
         {
-            Console.Write("Connecting to Outlook...");
-            NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
-            Console.Write("Done\nSearching for folder \\\\soc@RT.RU\\ELK...");
-            //Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
-            folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
-            Console.WriteLine("Done\n");
+            _logger = logger;
+            _logger.Log("Connecting to Outlook...");
+            _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
+            _logger.Log("Done");
+            _logger.Log("Searching for folder \\\\soc@RT.RU\\ELK...");
+            _folder = (Folder)_NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
+            _logger.Log("Done");
         }
 
         static bool IsInvalidCount(string count)
@@ -58,26 +60,27 @@ namespace OutlookInboxHandler
 
         public void GetAddressesFromOutlook(ref List<string> addresses)
         {
-            Console.WriteLine("Messages Scanning:");
+            _logger.Log("Messages Scanning started");
             int messageNumber = 0;
-            foreach (MailItem mailItem in folder.Items)
+            foreach (MailItem mailItem in _folder.Items)
             {
-                if (mailItem.ReceivedTime.DayOfYear == DateTime.Now.DayOfYear && mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
+                if (mailItem.ReceivedTime.Year == DateTime.Now.Year && mailItem.ReceivedTime.DayOfYear == DateTime.Now.DayOfYear && mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
                 {
-                    Console.WriteLine($"Message {++messageNumber}");
+                    _logger.Log($"Message {++messageNumber}");
                     if (mailItem.Attachments.Count > 0)
                     {
                         foreach (Attachment txt in mailItem.Attachments)
                         {
-                            Console.Write($"Saving attachment in the file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
-                            if (!Directory.Exists("C:\\ELK"))
+                            _logger.Log($"Saving attachment in the file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            if (!Directory.Exists("C:\\ELKAddressAdder"))
                             {
                                 Directory.CreateDirectory("C:\\ELKAddressAdder");
                             }
                             var path = $"C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
+                            _logger.Log("Done");
 
-                            Console.WriteLine($"Done\nReading file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
+                            _logger.Log($"Reading file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
                             {
                                 string line;
@@ -91,31 +94,31 @@ namespace OutlookInboxHandler
                                     if (Convert.ToInt32(splitLine[0]) >= 1000)
                                     {
                                         addresses.Add(splitLine[1]);
-                                        Console.WriteLine($"Address {splitLine[1]} added in list for adding.");
+                                        _logger.Log($"Address {splitLine[1]} added in list for adding.");
                                     }
                                 }
                             }
-                            Console.WriteLine("Done\nNext file.");
+                            _logger.Log("Reading file finished\tNext file.");
                         }
                     }
                     else            //если в письме нет вложений, переходим к следующему письму - добавить в уведомление
                     {
-                        Console.Write("Message have not attachments.\t");
+                        _logger.Log("Message have not attachments");
                     }
                     try
                     {
-                        mailItem.Move(folder.Folders["Done"]);
-                        Console.Write("Message moved to \\\\soc@RT.RU\\ELK\\Done.\t");
+                        mailItem.Move(_folder.Folders["Done"]);
+                        _logger.Log("Message moved to \\\\soc@RT.RU\\ELK\\Done");
+                        _logger.Log("Next message");
                     }
                     catch       //не существует папка для перемещения, переходим к следующему письму - добавить в уведомление
                     {
-                        Console.Write("Message didn't move to \\\\soc@RT.RU\\ELK\\Done.\t");
-                        Console.WriteLine("Next message.\n");
+                        _logger.Log("Message didn't move to \\\\soc@RT.RU\\ELK\\Done.");
+                        _logger.Log("Next message");
                     }
-                    Console.WriteLine("Next message.\n");
                 }
             }
-            Console.WriteLine("End of messages.\n");
+            _logger.Log("Scanning finished.");
         }
     }
 }
