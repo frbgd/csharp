@@ -24,13 +24,13 @@ namespace OutlookInboxHandler
 
                 List<string> addresses = new List<string>();
 
-                var outlookChecker = new OutlookChecker(logger);
+                var outlookChecker = new OutlookChecker("soc@RT.RU\\Входящие\\ELK", "C:\\ELKAddressAdder", logger);
 
                 outlookChecker.GetAddressesFromOutlook(ref addresses);
 
                 addresses = addresses.Distinct().ToList<string>();
 
-                var arborHandler = new ArborHandler(args, logger);
+                var arborHandler = new ArborHandler(args, "58640", logger);
 
                 if (addresses.Any())
                 {
@@ -59,7 +59,7 @@ namespace OutlookInboxHandler
                 else if (ex.Source == "Microsoft Outlook")        //если неверный путь к папке - уведомить
                 {
                     logger.Log($"ERROR: Folder \\\\soc@RT.RU\\ELK doesn't exists!");
-                    var notification = await telegramNotificator.Notify($"ELKAddressAdder FAILED!\tFolder \\\\soc@RT.RU\\ELK doesn't exists!");
+                    var notification = await telegramNotificator.Notify($"ELKAddressAdder FAILED!\tFolder soc@RT.RU\\Входящие\\ELK doesn't exists!");
                 }
                 else if (ex.Source == "WebDriver")   //если ошибка в работе с Арбор
                 {

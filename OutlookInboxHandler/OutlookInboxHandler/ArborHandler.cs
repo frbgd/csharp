@@ -12,8 +12,9 @@ namespace OutlookInboxHandler
         Browser _browser;
         string _login;
         string _pass;
+        string _mitigationId;
         Logger _logger;
-        public ArborHandler(string[] args, Logger logger)
+        public ArborHandler(string[] args, string mitigationId, Logger logger)
         {
             if(String.Compare($"Firefox", args[0], true) == 0)
             {
@@ -25,6 +26,7 @@ namespace OutlookInboxHandler
             }
             _login = args[1];
             _pass = args[2];
+            _mitigationId = mitigationId;
             _logger = logger;
         }
         public enum Browser
@@ -48,7 +50,7 @@ namespace OutlookInboxHandler
             _logger.Log("Done");
 
             _logger.Log("Going to the navigation page...");
-            driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");      //здесь и далее в функции может выброситься ex.Source == "WebDriver"
+            driver.Navigate().GoToUrl($"https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}");      //здесь и далее в функции может выброситься ex.Source == "WebDriver"
 
             bool wasAuthorized = true;
             if (driver.Title.Contains("Login"))
@@ -85,7 +87,7 @@ namespace OutlookInboxHandler
 
             //проверка
             _logger.Log("Validating changes");
-            driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
+            driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}");
             driver.FindElement(By.CssSelector(".alt:nth-child(5) a")).Click();
             filterForm = driver.FindElement(By.Name("filter_MitigationRealTimeExpandBWList_bcfea401019cccd2db81b44b4b11d7c9"));
             if (filterForm.Text != filter)

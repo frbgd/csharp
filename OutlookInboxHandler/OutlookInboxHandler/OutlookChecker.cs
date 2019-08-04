@@ -9,18 +9,33 @@ namespace OutlookInboxHandler
 {
     public class OutlookChecker
     {
+        string _mailFolderPath;
+        string _windowsFolderPath;
         NameSpace _NS;
         Folder _folder;
         Logger _logger;
 
-        public OutlookChecker(Logger logger)
+        public OutlookChecker(string mailFolderPath, string windowsFolderPath, Logger logger)
         {
+            _mailFolderPath = mailFolderPath;
+            _windowsFolderPath = windowsFolderPath;
             _logger = logger;
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
             _logger.Log("Done");
-            _logger.Log("Searching for folder \\\\soc@RT.RU\\ELK...");
-            _folder = (Folder)_NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
+            _logger.Log($"Searching for {_mailFolderPath}...");
+            foreach(var folder in _mailFolderPath.Split('\\'))
+            {
+                _folder = (Folder)_NS.Folders[folder];
+            }
+            //_folder = (Folder)_NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
+            _logger.Log("Done");
+            _logger.Log($"Searching for directory {_windowsFolderPath}");
+            if (!Directory.Exists($"{_windowsFolderPath}"))
+            {
+                _logger.Log("Creating tt...");
+                Directory.CreateDirectory($"{_windowsFolderPath}");
+            }
             _logger.Log("Done");
         }
 
@@ -71,16 +86,12 @@ namespace OutlookInboxHandler
                     {
                         foreach (Attachment txt in mailItem.Attachments)
                         {
-                            _logger.Log($"Saving attachment in the file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
-                            if (!Directory.Exists("C:\\ELKAddressAdder"))
-                            {
-                                Directory.CreateDirectory("C:\\ELKAddressAdder");
-                            }
-                            var path = $"C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
+                            _logger.Log($"Saving attachment in the file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            var path = $"{_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
                             _logger.Log("Done");
 
-                            _logger.Log($"Reading file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
+                            _logger.Log($"Reading file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
                             {
                                 string line;
