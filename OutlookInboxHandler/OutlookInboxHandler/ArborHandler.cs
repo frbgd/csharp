@@ -56,7 +56,11 @@ namespace OutlookInboxHandler
                 driver.FindElement(By.Name("username")).SendKeys(_login);
                 driver.FindElement(By.Name("password")).SendKeys(_pass);
                 driver.FindElement(By.Name("Submit")).Click();
-                Thread.Sleep(15000);
+                Thread.Sleep(10000);
+                if (driver.Title.Contains("Login"))
+                {
+                    throw new Exception("Arbor ERROR: wrong credentials") { Source = "WebDriver" };
+                }
             }
             _logger.Log("Done");
 
@@ -73,7 +77,7 @@ namespace OutlookInboxHandler
             filterForm.SendKeys(filter);
             driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick")).Click();
 
-            Thread.Sleep(15000);
+            Thread.Sleep(10000);
             _logger.Log("Done");
 
 
@@ -89,7 +93,7 @@ namespace OutlookInboxHandler
                     filterForm.Clear();
                     filterForm.SendKeys(firstFilter);
                     driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick")).Click();
-                    Thread.Sleep(15000);
+                    Thread.Sleep(10000);
                 }
                 driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
                 driver.Dispose();
