@@ -11,17 +11,37 @@ namespace OutlookInboxHandler
     {
         NameSpace _NS;
         Folder _folder;
+        Folder _doneFolder;
         Logger _logger;
+        TelegramNotificator _notificator;
 
-        public OutlookChecker(Logger logger)
+        public OutlookChecker(Logger logger, TelegramNotificator notificator)
         {
             _logger = logger;
+            _notificator = notificator;
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
             _logger.Log("Done");
             _logger.Log("Searching for folder \\\\soc@RT.RU\\ELK...");
             _folder = (Folder)_NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
             _logger.Log("Done");
+            _logger.Log("Searching for folder \\\\soc@RT.RU\\ELK\\Done...");
+            try
+            {
+                _doneFolder = (Folder)_folder.Folders["Done"];
+            }
+            catch
+            {
+                _logger.Log("ERROR\tDone folder doesn't exist");
+            }
+            _logger.Log("Done");
+        }
+
+        public bool DoneFolderExists()
+        {
+            if (_doneFolder == null)
+                return false;
+            return true;
         }
 
         static bool IsInvalidCount(string count)
@@ -105,17 +125,12 @@ namespace OutlookInboxHandler
                     {
                         _logger.Log("Message have not attachments");
                     }
-                    try
+                    if(DoneFolderExists())
                     {
                         mailItem.Move(_folder.Folders["Done"]);
                         _logger.Log("Message moved to \\\\soc@RT.RU\\ELK\\Done");
-                        _logger.Log("Next message");
                     }
-                    catch       //не существует папка для перемещения, переходим к следующему письму - добавить в уведомление
-                    {
-                        _logger.Log("Message didn't move to \\\\soc@RT.RU\\ELK\\Done.");
-                        _logger.Log("Next message");
-                    }
+                    _logger.Log("Next message");
                 }
             }
             _logger.Log("Scanning finished.");

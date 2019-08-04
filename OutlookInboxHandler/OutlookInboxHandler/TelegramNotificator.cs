@@ -8,24 +8,38 @@ namespace OutlookInboxHandler
 {
     public class TelegramNotificator
     {
+        string _chatId;
         HttpClient client;
         Logger _logger;
+        private static TelegramNotificator _notificator;
 
-        public TelegramNotificator(Logger logger)
+        public static TelegramNotificator SetGetNotificator(Logger logger, string chatId)
         {
-            _logger = logger;
+            if (_notificator != null)
+                return _notificator;
+            else
+            {
+                _notificator = new TelegramNotificator(logger, chatId);
+                return _notificator;
+            }
         }
 
+        protected TelegramNotificator(Logger logger, string chatId)
+        {
+            _chatId = chatId;
+            _logger = logger;
+        }
+        
         async Task<bool> SetProxy()
         {
             _logger.Log("Checking Telegram proxy server...");
 
-            client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
+            client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
 
             if (!await ProxyAvailabilityChecking(client))
             {
                 _logger.Log("Error\tTrying another proxy server...");
-                client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
+                client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
             }
             if (!await ProxyAvailabilityChecking(client))
             {
@@ -53,32 +67,29 @@ namespace OutlookInboxHandler
             return true;
         }
 
-        public async Task<bool> TelegramNotification(List<string> addresses)
+        public async Task<bool> Notify(string message)
         {
-            _logger.Log("Sending message...");
+            _logger.Log($"Sending message to Telegram account with id:{_chatId}. Body:{message}.");
 
-            string notificationBody = "";
-            foreach (string address in addresses)
-            {
-                notificationBody = $"{notificationBody}{address}\n";
-            }
+            if (!await SetProxy())
+                return false;
 
             try
             {
-                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Addresses:{notificationBody}"));
+                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id={_chatId}&text=Addresses:{message}"));
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     _logger.Log("ERROR");
                     return false;
                 }
             }
-            catch
+            catch(Exception ex)
             {
-                _logger.Log("ERROR");
+                _logger.Log($"ERROR\t{ex.Message}");
                 return false;
             }
 
-            _logger.Log("Done");
+            _logger.Log("Message sent");
             return true;
         }
     }

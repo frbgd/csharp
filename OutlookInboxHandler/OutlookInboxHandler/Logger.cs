@@ -10,7 +10,6 @@ namespace OutlookInboxHandler
     public class Logger
     {
         string logFileName;
-        StreamWriter sw;
 
         private static Logger _logger;
         public static Logger SetGetLogger()
@@ -29,16 +28,15 @@ namespace OutlookInboxHandler
             {
                 Directory.CreateDirectory("C:\\ELKAddressAdder\\Logs");
             }
-            logFileName = $"ELKAddressAdder-{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}-log";
-            sw = new StreamWriter($"C:\\ELKAddressAdder\\Logs\\{logFileName}", true, System.Text.Encoding.Default);
+            logFileName = $"ELKAddressAdder-{DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss-fff")}.log";
         }
 
         public void Log(string message)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("yyyy - MM - dd hh: mm:ss.fff")}\t{message}");
-            using (sw)
+            Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
+            using (var sw = new StreamWriter($"C:\\ELKAddressAdder\\Logs\\{logFileName}", true, System.Text.Encoding.Default))
             {
-                sw.WriteLine($"{DateTime.Now.ToString("yyyy - MM - dd hh: mm:ss.fff")}\t{message}");
+                sw.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
             }
         }
     }
