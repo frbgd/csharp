@@ -16,7 +16,8 @@ namespace OutlookInboxHandler
         static void GetAddressesFromOutlook(ref List<string> addresses)
         {
             NameSpace NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");
-            Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
+            //Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
+            Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];
 
             foreach (MailItem mailItem in folder.Items)
             {
@@ -47,7 +48,7 @@ namespace OutlookInboxHandler
         static void AddToFilterList(List<string> addresses)
         {
             IWebDriver driver = new FirefoxDriver();
-            driver.Navigate().GoToUrl("https://vpi1kspd.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
+            driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
             driver.FindElement(By.Name("username")).SendKeys("a.kucheryavenko");
             driver.FindElement(By.Name("password")).SendKeys("4_c`&MjLjq");
             driver.FindElement(By.Name("Submit")).Click();
@@ -71,8 +72,8 @@ namespace OutlookInboxHandler
 
         static async Task<bool> TelegramNotification(List<string> addresses)
         {
-            var proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy");
-            //var proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew");
+            //var proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy");
+            var proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew");
             var handler = new HttpClientHandler { Proxy = proxy };
             HttpClient client = new HttpClient(handler, true);
 
@@ -82,7 +83,7 @@ namespace OutlookInboxHandler
                 notificationBody = $"{notificationBody}{address}\n";
             }
 
-            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text={notificationBody}"));
+            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Addresses:{notificationBody}"));
 
             Console.WriteLine("HTTPS GET: " + await result.Content.ReadAsStringAsync());
 
@@ -95,7 +96,7 @@ namespace OutlookInboxHandler
 
             GetAddressesFromOutlook(ref addresses);
 
-            //AddToFilterList(addresses);
+            AddToFilterList(addresses);
 
             bool status = await TelegramNotification(addresses);
         }
