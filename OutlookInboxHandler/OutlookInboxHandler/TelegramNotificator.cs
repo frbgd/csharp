@@ -40,12 +40,13 @@ namespace OutlookInboxHandler
             {
                 _logger.Log("Error\tTrying another proxy server...");
                 client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
+                if (!await ProxyAvailabilityChecking(client))
+                {
+                    _logger.Log("Error\tTelegram Proxy is unavailable!");
+                    return false;
+                }
             }
-            if (!await ProxyAvailabilityChecking(client))
-            {
-                _logger.Log("Error\tTelegram Proxy is unavailable!");
-                return false;
-            }
+            
             _logger.Log("Done");
             return true;
         }
@@ -76,7 +77,7 @@ namespace OutlookInboxHandler
 
             try
             {
-                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id={_chatId}&text=Addresses:{message}"));
+                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id={_chatId}&text={message}"));
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     _logger.Log("ERROR");
