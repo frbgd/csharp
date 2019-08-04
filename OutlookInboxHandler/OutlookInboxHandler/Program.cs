@@ -120,6 +120,7 @@ namespace OutlookInboxHandler
                     Console.WriteLine("Next message.\n");
                 }
             }
+            Console.WriteLine("End of messages.\n");
         }
 
         static void AddToFilterList(List<string> addresses, Browser browser, string login, string pass)
@@ -273,12 +274,12 @@ namespace OutlookInboxHandler
                     throw new System.Exception("Parameters ERROR: Invalid first parameter");
                 }
 
-                //GetAddressesFromOutlook(ref addresses);
+                GetAddressesFromOutlook(ref addresses);
 
-                //if (addresses.Any())
-                //{
-                //    AddToFilterList(addresses, browser, args[1], args[2]);
-                //}
+                if (addresses.Any())
+                {
+                    AddToFilterList(addresses, browser, args[1], args[2]);
+                }
 
                 bool status = await TelegramNotification(addresses);
 
@@ -296,7 +297,7 @@ namespace OutlookInboxHandler
                 }
                 else if (ex.Source == "Microsoft Outlook")        //если неверный путь к папке - уведомить
                 {
-                    Console.WriteLine("ERROR: folder not found.\nExiting.");
+                    Console.WriteLine("ERROR: folder C:\\ELKAddress not found.\nExiting.");
                 }
                 else if (ex.Source == "WebDriver")   //если ошибка в работе с Арбор
                 {
