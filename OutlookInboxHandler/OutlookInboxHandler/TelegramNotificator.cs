@@ -72,7 +72,7 @@ namespace OutlookInboxHandler
 
         public async Task<bool> Notify(string message)
         {
-            _logger.Log($"Sending message to Telegram account with id:{_chatId}. Body:{message}.");
+            _logger.Log($"Sending message to the Telegram chat with id:{_chatId}. Body:{message}.");
 
             if (!await SetProxy())
                 return false;
