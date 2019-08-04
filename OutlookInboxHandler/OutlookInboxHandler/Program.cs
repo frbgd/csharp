@@ -63,26 +63,26 @@ namespace OutlookInboxHandler
             //Folder folder = (Folder)NS.Folders["frbgd7@mail.ru"].Folders["test"];
             Folder folder = (Folder)NS.Folders["soc@RT.RU"].Folders["Входящие"].Folders["ELK"];       //здесь может выброситься ex.Source == "Microsoft Outlook"
 
-            Console.WriteLine("Done\nMessages Scanning:");
+            Console.WriteLine("Done\n\nMessages Scanning:");
             int messageNumber = 0;
             foreach (MailItem mailItem in folder.Items)
             {
-                if (mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
+                if (mailItem.ReceivedTime.DayOfYear == DateTime.Now.DayOfYear && mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
                 {
-                    Console.WriteLine($"Message: {++messageNumber}");
+                    Console.WriteLine($"Message {++messageNumber}");
                     if (mailItem.Attachments.Count > 0)
                     {
                         foreach (Attachment txt in mailItem.Attachments)
                         {
-                            Console.Write($"Saving attachment in the file C:\\ELK\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            Console.Write($"Saving attachment in the file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             if (!Directory.Exists("C:\\ELK"))
                             {
-                                Directory.CreateDirectory("C:\\ELK");
+                                Directory.CreateDirectory("C:\\ELKAddressAdder");
                             }
-                            var path = $"C:\\ELK\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
+                            var path = $"C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
 
-                            Console.Write($"Done\nReading file {mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            Console.WriteLine($"Done\nReading file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
                             {
                                 string line;
@@ -96,6 +96,7 @@ namespace OutlookInboxHandler
                                     if (Convert.ToInt32(splitLine[0]) >= 1000)
                                     {
                                         addresses.Add(splitLine[1]);
+                                        Console.WriteLine($"Address {splitLine[1]} added in list for adding.");
                                     }
                                 }
                             }
@@ -114,14 +115,17 @@ namespace OutlookInboxHandler
                     catch       //не существует папка для перемещения, переходим к следующему письму - добавить в уведомление
                     {
                         Console.Write("Message didn't move to \\\\soc@RT.RU\\ELK\\Done.\t");
+                        Console.WriteLine("Next message.\n");
                     }
-                    Console.WriteLine("Next message.");
+                    Console.WriteLine("Next message.\n");
                 }
             }
+            Console.WriteLine("End of messages.\n");
         }
 
         static void AddToFilterList(List<string> addresses, Browser browser, string login, string pass)
         {
+            Console.Write("Opening browser window...");
             OpenQA.Selenium.Remote.RemoteWebDriver driver;
             if(browser == 0)
             {
@@ -131,17 +135,20 @@ namespace OutlookInboxHandler
             {
                 driver = new ChromeDriver();
             }
-            
+
+            Console.Write("Done\nGoing to the navigation page...");
             driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");      //здесь и далее в функции может выброситься ex.Source == "WebDriver"
 
             if (driver.Title.Contains("Login"))
             {
+                Console.Write("Authorization needed...");
                 driver.FindElement(By.Name("username")).SendKeys(login);
                 driver.FindElement(By.Name("password")).SendKeys(pass);
                 driver.FindElement(By.Name("Submit")).Click();
                 Thread.Sleep(15000);
             }
 
+            Console.Write("Done\nEditing BW Filter list...");
             driver.FindElement(By.CssSelector(".alt:nth-child(5) a")).Click();
             IWebElement filterForm = driver.FindElement(By.Name("filter_MitigationRealTimeExpandBWList_bcfea401019cccd2db81b44b4b11d7c9"));
             string firstFilter = filterForm.Text;
@@ -155,6 +162,7 @@ namespace OutlookInboxHandler
             driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick")).Click();
 
             Thread.Sleep(15000);
+            Console.Write("Done\nChecking...");
 
             //проверка
             driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");
@@ -173,17 +181,48 @@ namespace OutlookInboxHandler
                 driver.Dispose();
                 throw new System.Exception("Arbor ERROR: can't add addreses to filter lists") { Source = "WebDriver" };     //если адреса не добавились
             }
+            Console.Write("Done\nLogging out and closing browser window...");
 
             driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
             driver.Dispose();
+            Console.WriteLine("Done\n");
+        }
+
+        static async Task<bool> ProxyAvailabilityChecking(HttpClient client)
+        {
+            try
+            {
+                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://api.telegram.org/"));
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         static async Task<bool> TelegramNotification(List<string> addresses)
         {
-            //var proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy");
-            var proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew");
-            var handler = new HttpClientHandler { Proxy = proxy };
-            HttpClient client = new HttpClient(handler, true);
+            Console.Write("Checking Telegram proxy server...");
+
+            var client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
+
+            if (!await ProxyAvailabilityChecking(client))
+            {
+                Console.Write("Error\nTrying another proxy server...");
+                client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
+            }
+            if (!await ProxyAvailabilityChecking(client))
+            {
+                Console.WriteLine("Error\nTelegram Proxy is unavailable!\n");
+                return false;
+            }
+            Console.WriteLine("OK\nSending message...");
 
             string notificationBody = "";
             foreach(string address in addresses)
@@ -191,10 +230,22 @@ namespace OutlookInboxHandler
                 notificationBody = $"{notificationBody}{address}\n";
             }
 
-            var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Addresses:{notificationBody}"));
+            try
+            {
+                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id=259571389&text=Addresses:{notificationBody}"));
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("ERROR\n");
+                    return false;
+                }
+            }
+            catch
+            {
+                Console.WriteLine("ERROR\n");
+                return false;
+            }
 
-            Console.WriteLine("HTTPS GET: " + await result.Content.ReadAsStringAsync());
-
+            Console.WriteLine("Done\n");
             return true;
         }
 
@@ -233,10 +284,12 @@ namespace OutlookInboxHandler
                 }
 
                 bool status = await TelegramNotification(addresses);
+
+                Console.WriteLine("Exiting.");
             }
             catch(System.Exception ex)
             {
-                if(ex.Source == "OutlookInboxHandler")      //если ошибка в args
+                if(ex.Source == "OutlookInboxHandler")      //если ошибка в args или в Telegram Proxy
                 {
                     Console.WriteLine($"{ex.Message}\nExiting.");
                 }
@@ -246,7 +299,7 @@ namespace OutlookInboxHandler
                 }
                 else if (ex.Source == "Microsoft Outlook")        //если неверный путь к папке - уведомить
                 {
-                    Console.WriteLine("ERROR: folder not found.\nExiting.");
+                    Console.WriteLine("ERROR: folder C:\\ELKAddress not found.\nExiting.");
                 }
                 else if (ex.Source == "WebDriver")   //если ошибка в работе с Арбор
                 {
