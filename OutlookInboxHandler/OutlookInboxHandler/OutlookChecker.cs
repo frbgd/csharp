@@ -1,16 +1,9 @@
-﻿using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium;
-using Microsoft.Office.Interop.Outlook;
+﻿using Microsoft.Office.Interop.Outlook;
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq;
-using MihaZupan;
 
 namespace OutlookInboxHandler
 {

@@ -57,9 +57,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArborHandler.cs" />
     <Compile Include="OutlookChecker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TelegramNotificator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
