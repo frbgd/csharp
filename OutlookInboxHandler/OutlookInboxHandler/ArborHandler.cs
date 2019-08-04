@@ -50,8 +50,10 @@ namespace OutlookInboxHandler
             _logger.Log("Going to the navigation page...");
             driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id=58640");      //здесь и далее в функции может выброситься ex.Source == "WebDriver"
 
+            bool wasAuthorized = true;
             if (driver.Title.Contains("Login"))
             {
+                wasAuthorized = false;
                 _logger.Log("Authorization needed...");
                 driver.FindElement(By.Name("username")).SendKeys(_login);
                 driver.FindElement(By.Name("password")).SendKeys(_pass);
@@ -101,8 +103,13 @@ namespace OutlookInboxHandler
             }
             _logger.Log("Done");
 
-            _logger.Log("Logging out and closing browser window...");
-            driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
+            if (!wasAuthorized)
+            {
+                _logger.Log("Logging out.");
+                driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
+                _logger.Log("Done");
+            }
+            _logger.Log("Closing browser window...");
             driver.Dispose();
             _logger.Log("Done\n");
         }
