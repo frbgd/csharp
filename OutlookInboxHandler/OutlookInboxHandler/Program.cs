@@ -16,7 +16,7 @@ namespace OutlookInboxHandler
             {
                 var notification = await telegramNotificator.Notify("ELKAddressAdder started");
 
-                
+
                 if (args.Count() != 3 || args[1] == null || args[2] == null || ((String.Compare($"Firefox", args[0], true) != 0) && (String.Compare($"Chrome", args[0], true) != 0)))
                 {
                     throw new System.Exception("Parameters ERROR: Invalid parameters or number of parameters");
@@ -28,7 +28,7 @@ namespace OutlookInboxHandler
 
                 outlookChecker.GetAddressesFromOutlook(ref addresses);
 
-                addresses.Distinct().ToList<string>();
+                addresses = addresses.Distinct().ToList<string>();
 
                 var arborHandler = new ArborHandler(args, logger);
 
