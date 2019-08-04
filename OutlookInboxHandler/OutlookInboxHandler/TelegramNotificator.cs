@@ -9,24 +9,26 @@ namespace OutlookInboxHandler
     public class TelegramNotificator
     {
         string _chatId;
+        string _botToken;
         HttpClient client;
         Logger _logger;
         private static TelegramNotificator _notificator;
 
-        public static TelegramNotificator SetGetNotificator(Logger logger, string chatId)
+        public static TelegramNotificator SetGetNotificator(Logger logger, string chatId, string botToken)
         {
             if (_notificator != null)
                 return _notificator;
             else
             {
-                _notificator = new TelegramNotificator(logger, chatId);
+                _notificator = new TelegramNotificator(logger, chatId, botToken);
                 return _notificator;
             }
         }
 
-        protected TelegramNotificator(Logger logger, string chatId)
+        protected TelegramNotificator(Logger logger, string chatId, string botToken)
         {
             _chatId = chatId;
+            _botToken = botToken;
             _logger = logger;
         }
         
@@ -77,10 +79,11 @@ namespace OutlookInboxHandler
 
             try
             {
-                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE/sendMessage?chat_id={_chatId}&text={message}"));
+                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot{_botToken}/sendMessage?chat_id={_chatId}&text={message}"));
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    _logger.Log("ERROR");
+                    var content = await result.Content.ReadAsStringAsync();
+                    _logger.Log($"ERROR sending message: {content}");
                     return false;
                 }
             }

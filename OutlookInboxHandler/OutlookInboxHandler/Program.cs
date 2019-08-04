@@ -11,7 +11,7 @@ namespace OutlookInboxHandler
         {
             var logger = Logger.SetGetLogger();
             logger.Log($"ELKAddressAdder started.");
-            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, "259571389");
+            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, "259571389", "952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE");
             try
             {
                 var notification = await telegramNotificator.Notify("ELKAddressAdder started");
