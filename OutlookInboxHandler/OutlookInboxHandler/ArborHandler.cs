@@ -47,7 +47,7 @@ namespace OutlookInboxHandler
             {
                 driver = new ChromeDriver();
             }
-            _logger.Log("Done");
+            _logger.Log("Windows opened");
 
             _logger.Log("Going to the navigation page...");
             driver.Navigate().GoToUrl($"https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}");      //здесь и далее в функции может выброситься ex.Source == "WebDriver"
@@ -86,7 +86,7 @@ namespace OutlookInboxHandler
 
 
             //проверка
-            _logger.Log("Validating changes");
+            _logger.Log("Validating changes...");
             driver.Navigate().GoToUrl("https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}");
             driver.FindElement(By.CssSelector(".alt:nth-child(5) a")).Click();
             filterForm = driver.FindElement(By.Name("filter_MitigationRealTimeExpandBWList_bcfea401019cccd2db81b44b4b11d7c9"));
@@ -107,7 +107,7 @@ namespace OutlookInboxHandler
 
             if (!wasAuthorized)
             {
-                _logger.Log("Logging out.");
+                _logger.Log("Logging out...");
                 driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
                 _logger.Log("Done");
             }

@@ -34,10 +34,10 @@ namespace OutlookInboxHandler
             }     
             _logger.Log("Done");
 
-            _logger.Log($"Searching for directory {_windowsFolderPath}");
+            _logger.Log($"Searching for directory {_windowsFolderPath}...");
             if (!Directory.Exists($"{_windowsFolderPath}"))
             {
-                _logger.Log("Creating tt...");
+                _logger.Log("Not found. Creating it...");
                 Directory.CreateDirectory($"{_windowsFolderPath}");
             }
             _logger.Log("Done");
@@ -95,7 +95,7 @@ namespace OutlookInboxHandler
                             txt.SaveAsFile(path);
                             _logger.Log("Done");
 
-                            _logger.Log($"Reading file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt");
+                            _logger.Log($"Reading file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
                             {
                                 string line;
@@ -109,7 +109,7 @@ namespace OutlookInboxHandler
                                     if (Convert.ToInt32(splitLine[0]) >= 1000)
                                     {
                                         addresses.Add(splitLine[1]);
-                                        _logger.Log($"Address {splitLine[1]} added in list for adding.");
+                                        _logger.Log($"Address {splitLine[1]} added in list for adding");
                                     }
                                 }
                             }
@@ -123,7 +123,7 @@ namespace OutlookInboxHandler
                     _logger.Log("Next message");
                 }
             }
-            _logger.Log("Scanning finished.");
+            _logger.Log("Scanning finished");
         }
     }
 }

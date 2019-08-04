@@ -9,32 +9,36 @@ namespace OutlookInboxHandler
 {
     public class Logger
     {
-        string logFileName;
+        string _logFileName;
+        string _progName;
+        string _windowsFolderPath;
 
         private static Logger _logger;
-        public static Logger SetGetLogger()
+        public static Logger SetGetLogger(string progName, string windowsFolderPath)
         {
             if (_logger != null)
                 return _logger;
             else
             {
-                _logger = new Logger();
+                _logger = new Logger(progName, windowsFolderPath);
                 return _logger;
             }
         }
-        protected Logger()
+        protected Logger(string progName, string windowsFolderPath)
         {
-            if (!Directory.Exists("C:\\ELKAddressAdder\\Logs"))
+            _windowsFolderPath = windowsFolderPath;
+            _progName = progName;
+            _logFileName = $"{_progName}-{DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss-fff")}.log";
+            if (!Directory.Exists(_windowsFolderPath))
             {
-                Directory.CreateDirectory("C:\\ELKAddressAdder\\Logs");
+                Directory.CreateDirectory($"{_windowsFolderPath}\\Logs");
             }
-            logFileName = $"ELKAddressAdder-{DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss-fff")}.log";
         }
 
         public void Log(string message)
         {
             Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
-            using (var sw = new StreamWriter($"C:\\ELKAddressAdder\\Logs\\{logFileName}", true, System.Text.Encoding.Default))
+            using (var sw = new StreamWriter($"{_windowsFolderPath}\\Logs\\{_logFileName}", true, System.Text.Encoding.Default))
             {
                 sw.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")}\t{message}");
             }
