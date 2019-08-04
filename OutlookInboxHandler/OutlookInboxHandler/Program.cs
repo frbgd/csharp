@@ -75,7 +75,7 @@ namespace OutlookInboxHandler
                         foreach (Attachment txt in mailItem.Attachments)
                         {
                             Console.Write($"Saving attachment in the file C:\\ELKAddressAdder\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
-                            if (!Directory.Exists("C:\\ELK"))
+                            if (!Directory.Exists("C:\\ELKAddressAdder"))
                             {
                                 Directory.CreateDirectory("C:\\ELKAddressAdder");
                             }
