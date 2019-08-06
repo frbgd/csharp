@@ -108,12 +108,12 @@ namespace OutlookInboxHandler
                         foreach (Attachment txt in mailItem.Attachments)
                         {
                             attachmentsNumber++;
-                            _logger.Log($"Saving attachment in the file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
-                            var path = $"{_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
+                            _logger.Log($"Saving attachment in the file {_windowsFolderPath}\\{_progName}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            var path = $"{_windowsFolderPath}\\{_progName}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
                             _logger.Log("Attachment saved");
 
-                            _logger.Log($"Reading file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
+                            _logger.Log($"Reading file {_windowsFolderPath}\\{_progName}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
                             {
                                 string line;

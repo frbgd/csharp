@@ -22,7 +22,7 @@ namespace OutlookInboxHandler
 
             try
             {
-                using (StreamReader sr = new StreamReader("config1.txt", System.Text.Encoding.Default))
+                using (StreamReader sr = new StreamReader("config.txt", System.Text.Encoding.Default))
                 {
                     string line;
                     while ((line = sr.ReadLine()) != null)
@@ -43,6 +43,7 @@ namespace OutlookInboxHandler
                         mailFolderPath = splittedLine[4].Trim();
                         treshold = Convert.ToInt32(splittedLine[5]);
                         mitigationId = Convert.ToInt32(splittedLine[6]);
+                        Console.WriteLine($"progName = {progName}\nwindowsFolderPath = {windowsFolderPath}\nbotToken = {botToken}\nchatId = {chatId}\nmailFolderPath = {mailFolderPath}\ntreshold = {treshold}\nmitigationId = {mitigationId}");
                         break;
                     }
                 }
@@ -55,12 +56,25 @@ namespace OutlookInboxHandler
             {
                 Console.WriteLine("Initialization failed!");
                 Console.WriteLine(ex.Message);
+                Console.ReadKey();
                 return;
             }
 
             Console.WriteLine("Initialization done");
 
+
             var logger = Logger.SetGetLogger(progName, windowsFolderPath);
+            //logger.Log("Telegram Proxy Initialization");
+            //try
+            //{
+
+            //}
+            //catch
+            //{
+
+            //}
+
+
             logger.Log($"{progName} started on {System.Environment.MachineName}");
             var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId.ToString(), botToken);
             try
