@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.IO;
 
 namespace OutlookInboxHandler
 {
@@ -9,17 +10,59 @@ namespace OutlookInboxHandler
     {
         static async Task Main(string[] args)
         {
-            int treshold = 1000;
-            string chatId = "259571389";
-            string botToken = "952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE";
-            string progName = "ELKAddressAdder";
-            string mailFolderPath = "soc@RT.RU\\Входящие\\ELK";
-            string windowsFolderPath = "C:\\ELKAddressAdder";
-            string mitigationId = "58640";
+            Console.WriteLine("Initializing...");
+
+            string progName = null;
+            string windowsFolderPath = null;
+            string botToken = null;
+            int chatId = 0;
+            string mailFolderPath = null;
+            int treshold = 0;
+            int mitigationId = 0;
+
+            try
+            {
+                using (StreamReader sr = new StreamReader("config1.txt", System.Text.Encoding.Default))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("#"))
+                        {
+                            continue;
+                        }
+                        var splittedLine = line.Split(',');
+                        if (splittedLine.Count() != 7 || Convert.ToInt32(splittedLine[3]) < 1 || Convert.ToInt32(splittedLine[5]) < 1 || Convert.ToInt32(splittedLine[6]) < 1)
+                        {
+                            throw new Exception("Invalid values in config.txt");
+                        }
+                        progName = splittedLine[0].Trim();
+                        windowsFolderPath = splittedLine[1].Trim();
+                        botToken = splittedLine[2].Trim();
+                        chatId = Convert.ToInt32(splittedLine[3]);
+                        mailFolderPath = splittedLine[4].Trim();
+                        treshold = Convert.ToInt32(splittedLine[5]);
+                        mitigationId = Convert.ToInt32(splittedLine[6]);
+                        break;
+                    }
+                }
+                if(String.IsNullOrEmpty(progName) || String.IsNullOrEmpty(windowsFolderPath) || windowsFolderPath[1] != ':' || windowsFolderPath[2] != '\\' || String.IsNullOrEmpty(botToken) || String.IsNullOrEmpty(mailFolderPath) || chatId == 0 || treshold == 0 || mitigationId == 0)
+                {
+                    throw new Exception("Invalid values in config.txt");
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Initialization failed!");
+                Console.WriteLine(ex.Message);
+                return;
+            }
+
+            Console.WriteLine("Initialization done");
 
             var logger = Logger.SetGetLogger(progName, windowsFolderPath);
-            logger.Log($"{progName} started.");
-            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId, botToken);
+            logger.Log($"{progName} started on {System.Environment.MachineName}");
+            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId.ToString(), botToken);
             try
             {
                 var notification = await telegramNotificator.Notify($"{progName} started on {System.Environment.MachineName}");
@@ -32,7 +75,7 @@ namespace OutlookInboxHandler
 
                 List<string> addresses = new List<string>();
 
-                var outlookChecker = new OutlookChecker(treshold, mailFolderPath, windowsFolderPath, logger);
+                var outlookChecker = new OutlookChecker(treshold, mailFolderPath, progName, windowsFolderPath, logger);
 
                 outlookChecker.GetAddressesFromOutlook(ref addresses);
                 logger.Log($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} addresses is(are) ready to adding");
@@ -50,7 +93,7 @@ namespace OutlookInboxHandler
                 {
                     addresses = addresses.Distinct().ToList<string>();
 
-                    var arborHandler = new ArborHandler(args, mitigationId, logger);
+                    var arborHandler = new ArborHandler(args, mitigationId.ToString(), logger);
                     arborHandler.AddToFilterList(ref addresses);
                     if (addresses.Any())
                     {
@@ -71,13 +114,7 @@ namespace OutlookInboxHandler
             }
             catch(System.Exception ex)
             {
-                if(ex.Source == "OutlookInboxHandler")      //если ошибка в args или в Telegram Proxy
-                {
-                    logger.Log($"{ex.Message}");
-                    var notification = await telegramNotificator.Notify($"{progName} FAILED!\t{ex.Message}");
-                    logger.Log("Exiting");
-                }
-                else if(ex.Source == "mscorlib")     //если закрыт OutLook - уведомить
+                if(ex.Source == "mscorlib")     //если закрыт OutLook - уведомить
                 {
                     logger.Log("ERROR: Microsoft Outlook isn't running");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\tMicrosoft Outlook isn't running");
@@ -89,7 +126,7 @@ namespace OutlookInboxHandler
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\tMail folder {mailFolderPath} doesn't exists");
                     logger.Log("Exiting");
                 }
-                else if (ex.Source == "WebDriver")   //если ошибка в работе с Арбор
+                else
                 {
                     logger.Log($"{ex.Message}");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\t{ex.Message}");

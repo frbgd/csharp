@@ -83,7 +83,7 @@ namespace OutlookInboxHandler
             try
             {
                 _logger.Log("Going to the mitigation page...");
-                driver.Url = $"https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}";     //здесь и далее в функции может выброситься ex.Source == "WebDriver"
+                driver.Url = $"https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}";
 
                 bool wasAuthorized = true;
                 if (driver.Title.Contains("Login"))
@@ -96,7 +96,7 @@ namespace OutlookInboxHandler
                     Thread.Sleep(10000);
                     if (driver.Title.Contains("Login"))
                     {
-                        throw new Exception("Arbor ERROR: wrong credentials") { Source = "WebDriver" };
+                        throw new Exception("Arbor ERROR: wrong credentials");
                     }
                 }
                 _logger.Log("Mitigation page opened");
@@ -144,7 +144,7 @@ namespace OutlookInboxHandler
                         Thread.Sleep(10000);
                     }
                     driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
-                    throw new System.Exception("Arbor ERROR: can't add addreses to filter lists") { Source = "WebDriver" };     //если адреса не добавились
+                    throw new System.Exception("Arbor ERROR: can't add addreses to filter lists");     //если адреса не добавились
                 }
                 _logger.Log("Changes are valid");
 

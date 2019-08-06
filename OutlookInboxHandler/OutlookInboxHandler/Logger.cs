@@ -38,7 +38,7 @@ namespace OutlookInboxHandler
         public void Log(string message)
         {
             Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}\t{message}");
-            using (var sw = new StreamWriter($"{_windowsFolderPath}\\Logs\\{_logFileName}", true, System.Text.Encoding.Default))
+            using (var sw = new StreamWriter($"{_windowsFolderPath}\\{_progName}\\Logs\\{_logFileName}", true, System.Text.Encoding.Default))
             {
                 sw.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}\t{message}");
             }

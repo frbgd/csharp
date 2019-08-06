@@ -11,6 +11,7 @@ namespace OutlookInboxHandler
     {
         int _treshold;
         string _mailFolderPath;
+        string _progName;
         string _windowsFolderPath;
         NameSpace _NS;
         Folder _folder;
@@ -20,15 +21,31 @@ namespace OutlookInboxHandler
         public int attachmentsNumber { get; set; }
 
 
-        public OutlookChecker(int treshold, string mailFolderPath, string windowsFolderPath, Logger logger)
+        public OutlookChecker(int treshold, string mailFolderPath, string progName, string windowsFolderPath, Logger logger)
         {
             _treshold = treshold;
             _mailFolderPath = mailFolderPath;
+            _progName = progName;
             _windowsFolderPath = windowsFolderPath;
             _logger = logger;
 
             messagesNumber = 0;
             attachmentsNumber = 0;
+
+            _logger.Log($"Searching for directory {_windowsFolderPath}\\{_progName}...");
+
+
+            if (!Directory.Exists($"{_windowsFolderPath}"))
+            {
+                throw new System.Exception($"Path {_windowsFolderPath} doesn't exists");
+            }
+
+            if (!Directory.Exists($"{_windowsFolderPath}\\{_progName}"))
+            {
+                _logger.Log("Not found. Creating it...");
+                Directory.CreateDirectory($"{_windowsFolderPath}");
+            }
+            _logger.Log("Directory found");
 
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
@@ -42,14 +59,6 @@ namespace OutlookInboxHandler
                 _folder = (Folder)_folder.Folders[splittedPath[i]];     //здесь может выброситься ex.Source == "Microsoft Outlook"
             }     
             _logger.Log("Folder found");
-
-            _logger.Log($"Searching for directory {_windowsFolderPath}...");
-            if (!Directory.Exists($"{_windowsFolderPath}"))
-            {
-                _logger.Log("Not found. Creating it...");
-                Directory.CreateDirectory($"{_windowsFolderPath}");
-            }
-            _logger.Log("Directory found");
         }
 
         static bool IsInvalidCount(string count)
