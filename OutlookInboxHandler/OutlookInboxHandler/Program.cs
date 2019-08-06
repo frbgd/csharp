@@ -22,7 +22,7 @@ namespace OutlookInboxHandler
             var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId, botToken);
             try
             {
-                var notification = await telegramNotificator.Notify($"{progName} started");
+                var notification = await telegramNotificator.Notify($"{progName} started on {System.Environment.MachineName}");
 
 
                 if (args.Count() != 3 || args[1] == null || args[2] == null || ((String.Compare($"Firefox", args[0], true) != 0) && (String.Compare($"Chrome", args[0], true) != 0)))
@@ -36,7 +36,15 @@ namespace OutlookInboxHandler
 
                 outlookChecker.GetAddressesFromOutlook(ref addresses);
                 logger.Log($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} addresses is(are) ready to adding");
-                notification = await telegramNotificator.Notify($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} addresses is(are) ready to adding");
+                notification = await telegramNotificator.Notify($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} address(es) is(are) ready to adding");
+                if(outlookChecker.messagesNumber == 0)
+                {
+                    notification = await telegramNotificator.Notify($"WARNING! There are no messages in the \\{mailFolderPath} for the current hour!");
+                }
+                else if(outlookChecker.attachmentsNumber == 0)
+                {
+                    notification = await telegramNotificator.Notify($"WARNING! There are no atachments in current hour messages!");
+                }
 
                 if (addresses.Any())
                 {
