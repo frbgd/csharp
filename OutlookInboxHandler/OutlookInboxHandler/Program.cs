@@ -106,7 +106,7 @@ namespace OutlookInboxHandler
 
             logger.Log("Telegram Proxy Initialization Done");
             logger.Log($"{progName} started on {System.Environment.MachineName}");
-            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId.ToString(), botToken);
+            var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId.ToString(), botToken, tProxies);
             try
             {
                 var notification = await telegramNotificator.Notify($"{progName} started on {System.Environment.MachineName}");
