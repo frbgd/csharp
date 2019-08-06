@@ -10,47 +10,58 @@ namespace OutlookInboxHandler
     {
         string _chatId;
         string _botToken;
-        HttpClient client;
+        HttpClient _client;
         Logger _logger;
+        List<TelegramProxy> _proxies;
+
         private static TelegramNotificator _notificator;
 
-        public static TelegramNotificator SetGetNotificator(Logger logger, string chatId, string botToken)
+        public static TelegramNotificator SetGetNotificator(Logger logger, string chatId, string botToken, List<TelegramProxy> proxies)
         {
             if (_notificator != null)
                 return _notificator;
             else
             {
-                _notificator = new TelegramNotificator(logger, chatId, botToken);
+                _notificator = new TelegramNotificator(logger, chatId, botToken, proxies);
                 return _notificator;
             }
         }
 
-        protected TelegramNotificator(Logger logger, string chatId, string botToken)
+        protected TelegramNotificator(Logger logger, string chatId, string botToken, List<TelegramProxy> proxies)
         {
             _chatId = chatId;
             _botToken = botToken;
             _logger = logger;
+            _proxies = new List<TelegramProxy>(proxies);
         }
         
         async Task<bool> SetProxy()
         {
-            _logger.Log("Checking Telegram proxy server...");
+            _logger.Log("Connecting to Telegram proxy server...");
 
-            client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
+            //client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
 
-            if (!await ProxyAvailabilityChecking(client))
+            //if (!await ProxyAvailabilityChecking(client))
+            //{
+            //    _logger.Log("Error\tTrying another proxy server...");
+            //    client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
+            //    if (!await ProxyAvailabilityChecking(client))
+            //    {
+            //        _logger.Log("Error\tTelegram Proxy is unavailable!");
+            //        return false;
+            //    }
+            //}
+            foreach(var proxy in _proxies)
             {
-                _logger.Log("Error\tTrying another proxy server...");
-                client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
-                if (!await ProxyAvailabilityChecking(client))
+                _client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy(proxy._address, proxy._port, proxy._login, proxy._pass) }, true);
+                if(await ProxyAvailabilityChecking(_client))
                 {
-                    _logger.Log("Error\tTelegram Proxy is unavailable!");
-                    return false;
+                    _logger.Log($"Connected to proxy {proxy._address}:{proxy._port}");
+                    return true;
                 }
             }
-            
-            _logger.Log("Proxy connected");
-            return true;
+            _logger.Log("ERROR\tAll telegram proxies are unavailable!");
+            return false;
         }
         static async Task<bool> ProxyAvailabilityChecking(HttpClient client)
         {
@@ -79,7 +90,7 @@ namespace OutlookInboxHandler
 
             try
             {
-                var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot{_botToken}/sendMessage?chat_id={_chatId}&text={message}"));
+                var result = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"https://api.telegram.org/bot{_botToken}/sendMessage?chat_id={_chatId}&text={message}"));
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     var content = await result.Content.ReadAsStringAsync();
