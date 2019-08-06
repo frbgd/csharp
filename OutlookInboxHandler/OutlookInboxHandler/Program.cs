@@ -43,7 +43,7 @@ namespace OutlookInboxHandler
                         mailFolderPath = splittedLine[4].Trim();
                         treshold = Convert.ToInt32(splittedLine[5]);
                         mitigationId = Convert.ToInt32(splittedLine[6]);
-                        Console.WriteLine($"Program Name = {progName}\nWindows Folder Path = {windowsFolderPath}\nBot Token = {botToken}\nChatId = {chatId}\nMail Folder Path = {mailFolderPath}\nTreshold = {treshold}\nMitigation Id = {mitigationId}");
+                        Console.WriteLine($"Program Name = {progName}\nWindows Folder Path = {windowsFolderPath}\nTelegram Bot Token = {botToken}\nTelegram Chat Id = {chatId}\nMail Folder Path = {mailFolderPath}\nTreshold = {treshold}\nMitigation Id = {mitigationId}");
                         break;
                     }
                 }
@@ -64,7 +64,7 @@ namespace OutlookInboxHandler
 
 
             var logger = Logger.SetGetLogger(progName, windowsFolderPath);
-            logger.Log("Initialization done: Program Name = {progName}\tWindows Folder Path = {windowsFolderPath}\tBot Token = {botToken}\tChatId = {chatId}\tMail Folder Path = {mailFolderPath}\tTreshold = {treshold}\tMitigation Id = {mitigationId}");
+            logger.Log($"Initialization done: Program Name = {progName}\tWindows Folder Path = {windowsFolderPath}\tTelegram Bot Token = {botToken}\tTelegram Chat Id = {chatId}\tMail Folder Path = {mailFolderPath}\tTreshold = {treshold}\tMitigation Id = {mitigationId}");
             logger.Log("Telegram Proxy Initialization");
             var tProxies = new List<TelegramProxy>();
             try

@@ -38,19 +38,6 @@ namespace OutlookInboxHandler
         async Task<bool> SetProxy()
         {
             _logger.Log("Connecting to Telegram proxy server...");
-
-            //client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("139.162.141.171", 31422, "pirates", "hmm_i_see_some_pirates_here_meeeew") }, true);
-
-            //if (!await ProxyAvailabilityChecking(client))
-            //{
-            //    _logger.Log("Error\tTrying another proxy server...");
-            //    client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy("tmpx.soc.rt.ru", 1080, "cdc", "UZy58MNr2kW769s74Sn2dQ2xP7zKwLyy") }, true);
-            //    if (!await ProxyAvailabilityChecking(client))
-            //    {
-            //        _logger.Log("Error\tTelegram Proxy is unavailable!");
-            //        return false;
-            //    }
-            //}
             foreach(var proxy in _proxies)
             {
                 _client = new HttpClient(new HttpClientHandler { Proxy = new HttpToSocks5Proxy(proxy._address, proxy._port, proxy._login, proxy._pass) }, true);
@@ -83,7 +70,7 @@ namespace OutlookInboxHandler
 
         public async Task<bool> Notify(string message)
         {
-            _logger.Log($"Sending message to the Telegram chat with id:{_chatId}. Body:{message}.");
+            _logger.Log($"Sending message to the Telegram chat with body: {message}.");
 
             if (!await SetProxy())
                 return false;
