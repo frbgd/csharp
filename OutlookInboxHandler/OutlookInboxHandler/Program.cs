@@ -43,7 +43,7 @@ namespace OutlookInboxHandler
                         mailFolderPath = splittedLine[4].Trim();
                         treshold = Convert.ToInt32(splittedLine[5]);
                         mitigationId = Convert.ToInt32(splittedLine[6]);
-                        Console.WriteLine($"progName = {progName}\nwindowsFolderPath = {windowsFolderPath}\nbotToken = {botToken}\nchatId = {chatId}\nmailFolderPath = {mailFolderPath}\ntreshold = {treshold}\nmitigationId = {mitigationId}");
+                        Console.WriteLine($"Program Name = {progName}\nWindows Folder Path = {windowsFolderPath}\nBot Token = {botToken}\nChatId = {chatId}\nMail Folder Path = {mailFolderPath}\nTreshold = {treshold}\nMitigation Id = {mitigationId}");
                         break;
                     }
                 }
@@ -64,17 +64,47 @@ namespace OutlookInboxHandler
 
 
             var logger = Logger.SetGetLogger(progName, windowsFolderPath);
-            //logger.Log("Telegram Proxy Initialization");
-            //try
-            //{
+            logger.Log("Initialization done: Program Name = {progName}\tWindows Folder Path = {windowsFolderPath}\tBot Token = {botToken}\tChatId = {chatId}\tMail Folder Path = {mailFolderPath}\tTreshold = {treshold}\tMitigation Id = {mitigationId}");
+            logger.Log("Telegram Proxy Initialization");
+            var tProxies = new List<TelegramProxy>();
+            try
+            {
+                using (StreamReader sr = new StreamReader("tproxy.txt", System.Text.Encoding.Default))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("#"))
+                        {
+                            continue;
+                        }
+                        var splittedLine = line.Split(',');
+                        try
+                        {
+                            if (splittedLine.Count() != 4 || Convert.ToInt32(splittedLine[1]) < 1)
+                            {
+                                throw new Exception();
+                            }
+                        }
+                        catch
+                        {
+                            logger.Log($"Line {line} passed");
+                            continue;
+                        }
+                        tProxies.Add(new TelegramProxy(splittedLine[0], Convert.ToInt32(splittedLine[1]), splittedLine[2], splittedLine[3]));
+                        logger.Log($"Telegram Proxy added in list: Address/HostName = {splittedLine[0]}\tPort = {splittedLine[1]}\tLogin = {splittedLine[2]}\tPassword = {splittedLine[3]}");
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Telegram Proxy Initialization failed!");
+                Console.WriteLine(ex.Message);
+                Console.ReadKey();
+                return;
+            }
 
-            //}
-            //catch
-            //{
-
-            //}
-
-
+            logger.Log("Telegram Proxy Initialization Done");
             logger.Log($"{progName} started on {System.Environment.MachineName}");
             var telegramNotificator = TelegramNotificator.SetGetNotificator(logger, chatId.ToString(), botToken);
             try
