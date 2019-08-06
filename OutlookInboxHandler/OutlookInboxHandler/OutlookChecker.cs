@@ -32,7 +32,7 @@ namespace OutlookInboxHandler
 
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
-            _logger.Log("Done");
+            _logger.Log("Connected");
 
             _logger.Log($"Searching for {_mailFolderPath}...");
             var splittedPath = _mailFolderPath.Split('\\');
@@ -41,7 +41,7 @@ namespace OutlookInboxHandler
             {
                 _folder = (Folder)_folder.Folders[splittedPath[i]];     //здесь может выброситься ex.Source == "Microsoft Outlook"
             }     
-            _logger.Log("Done");
+            _logger.Log("Folder found");
 
             _logger.Log($"Searching for directory {_windowsFolderPath}...");
             if (!Directory.Exists($"{_windowsFolderPath}"))
@@ -49,7 +49,7 @@ namespace OutlookInboxHandler
                 _logger.Log("Not found. Creating it...");
                 Directory.CreateDirectory($"{_windowsFolderPath}");
             }
-            _logger.Log("Done");
+            _logger.Log("Directory found");
         }
 
         static bool IsInvalidCount(string count)
@@ -102,7 +102,7 @@ namespace OutlookInboxHandler
                             _logger.Log($"Saving attachment in the file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             var path = $"{_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
-                            _logger.Log("Done");
+                            _logger.Log("Attachment saved");
 
                             _logger.Log($"Reading file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))

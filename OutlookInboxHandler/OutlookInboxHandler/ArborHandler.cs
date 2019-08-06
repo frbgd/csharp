@@ -82,7 +82,7 @@ namespace OutlookInboxHandler
             _logger.Log("Window opened");
             try
             {
-                _logger.Log("Going to the navigation page...");
+                _logger.Log("Going to the mitigation page...");
                 driver.Url = $"https://vpi1.soc.rt.ru/page?id=mitigation_status&mitigation_id={_mitigationId}";     //здесь и далее в функции может выброситься ex.Source == "WebDriver"
 
                 bool wasAuthorized = true;
@@ -99,17 +99,13 @@ namespace OutlookInboxHandler
                         throw new Exception("Arbor ERROR: wrong credentials") { Source = "WebDriver" };
                     }
                 }
-                _logger.Log("Done");
+                _logger.Log("Mitigation page opened");
 
                 _logger.Log("Editing BW Filter list...");
                 driver.FindElement(By.CssSelector(".alt:nth-child(5) a")).Click();
                 IWebElement filterForm = driver.FindElement(By.Name("filter_MitigationRealTimeExpandBWList_bcfea401019cccd2db81b44b4b11d7c9"));
                 string firstFilter = filterForm.Text;
                 string filter = firstFilter;
-                foreach (string address in addresses)
-                {
-                    filter = $"drop src host {address}\r\n{filter}";
-                }
 
                 addresses = DuplicateDeleting(addresses, filter);
                 if (!addresses.Any())
@@ -120,12 +116,17 @@ namespace OutlookInboxHandler
                     return;
                 }
 
+                foreach (string address in addresses)
+                {
+                    filter = $"drop src host {address}\r\n{filter}";
+                }
+
                 filterForm.Clear();
                 filterForm.SendKeys(filter);
                 driver.FindElement(By.CssSelector(".tableheader:nth-child(8) .tick")).Click();
 
                 Thread.Sleep(10000);
-                _logger.Log("Done");
+                _logger.Log("Filter list edited");
 
 
                 //проверка
@@ -145,13 +146,13 @@ namespace OutlookInboxHandler
                     driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
                     throw new System.Exception("Arbor ERROR: can't add addreses to filter lists") { Source = "WebDriver" };     //если адреса не добавились
                 }
-                _logger.Log("Done");
+                _logger.Log("Changes are valid");
 
                 if (!wasAuthorized)
                 {
                     _logger.Log("Logging out...");
                     driver.FindElement(By.ClassName("user")).FindElement(By.TagName("a")).Click();
-                    _logger.Log("Done");
+                    _logger.Log("Logged out");
                 }
             }
             catch(Exception ex)
@@ -162,7 +163,7 @@ namespace OutlookInboxHandler
             }
             _logger.Log("Closing browser window...");
             driver.Dispose();
-            _logger.Log("Done\n");
+            _logger.Log("Windows closed\n");
         }
     }
 }

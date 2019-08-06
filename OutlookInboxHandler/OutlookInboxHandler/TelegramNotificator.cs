@@ -49,7 +49,7 @@ namespace OutlookInboxHandler
                 }
             }
             
-            _logger.Log("Done");
+            _logger.Log("Proxy connected");
             return true;
         }
         static async Task<bool> ProxyAvailabilityChecking(HttpClient client)

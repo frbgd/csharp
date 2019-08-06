@@ -73,23 +73,27 @@ namespace OutlookInboxHandler
             {
                 if(ex.Source == "OutlookInboxHandler")      //если ошибка в args или в Telegram Proxy
                 {
-                    logger.Log($"{ex.Message}\tExiting");
+                    logger.Log($"{ex.Message}");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\t{ex.Message}");
+                    logger.Log("Exiting");
                 }
                 else if(ex.Source == "mscorlib")     //если закрыт OutLook - уведомить
                 {
-                    logger.Log("ERROR: Microsoft Outlook isn't running\tExiting");
+                    logger.Log("ERROR: Microsoft Outlook isn't running");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\tMicrosoft Outlook isn't running");
+                    logger.Log("Exiting");
                 }
                 else if (ex.Source == "Microsoft Outlook")        //если неверный путь к папке - уведомить
                 {
-                    logger.Log($"ERROR: Mail folder {mailFolderPath} doesn't exists\tExiting");
+                    logger.Log($"ERROR: Mail folder {mailFolderPath} doesn't exists");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\tMail folder {mailFolderPath} doesn't exists");
+                    logger.Log("Exiting");
                 }
                 else if (ex.Source == "WebDriver")   //если ошибка в работе с Арбор
                 {
-                    logger.Log($"{ex.Message}\tExiting");
+                    logger.Log($"{ex.Message}");
                     var notification = await telegramNotificator.Notify($"{progName} FAILED!\t{ex.Message}");
+                    logger.Log("Exiting");
                 }
             }
         }
