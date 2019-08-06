@@ -9,13 +9,13 @@ namespace OutlookInboxHandler
     {
         static async Task Main(string[] args)
         {
+            int treshold = 1000;
             string chatId = "259571389";
             string botToken = "952380349:AAGKIafp1PM4gMfZXBSodaJgLKwwHhiJmqE";
             string progName = "ELKAddressAdder";
             string mailFolderPath = "soc@RT.RU\\Входящие\\ELK";
             string windowsFolderPath = "C:\\ELKAddressAdder";
             string mitigationId = "58640";
-
 
             var logger = Logger.SetGetLogger(progName, windowsFolderPath);
             logger.Log($"{progName} started.");
@@ -32,22 +32,31 @@ namespace OutlookInboxHandler
 
                 List<string> addresses = new List<string>();
 
-                var outlookChecker = new OutlookChecker(mailFolderPath, windowsFolderPath, logger);
+                var outlookChecker = new OutlookChecker(treshold, mailFolderPath, windowsFolderPath, logger);
 
                 outlookChecker.GetAddressesFromOutlook(ref addresses);
-
-                addresses = addresses.Distinct().ToList<string>();
-
-                var arborHandler = new ArborHandler(args, mitigationId, logger);
+                logger.Log($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} addresses is(are) ready to adding");
+                notification = await telegramNotificator.Notify($"{outlookChecker.messagesNumber} messages readed, {outlookChecker.attachmentsNumber} attachments analyzed, {addresses.Count()} addresses is(are) ready to adding");
 
                 if (addresses.Any())
                 {
-                    arborHandler.AddToFilterList(addresses);
-                    notification = await telegramNotificator.Notify($"{progName} stopped succesfully. Addresses added in mitigation:\n{String.Join(",\n", addresses)}");
+                    addresses = addresses.Distinct().ToList<string>();
+
+                    var arborHandler = new ArborHandler(args, mitigationId, logger);
+                    arborHandler.AddToFilterList(ref addresses);
+                    if (addresses.Any())
+                    {
+                        notification = await telegramNotificator.Notify($"{progName} stopped succesfully. Addresses added to the mitigation:\n{String.Join(",\n", addresses)}");
+                    }
+                    else
+                    {
+                        notification = await telegramNotificator.Notify($"{progName} stopped succesfully. No addresses added to the mitigation: all addresses from the current mailing list are already in the filter.");
+                    }
                 }
                 else
                 {
-                    notification = await telegramNotificator.Notify($"{progName} stopped succesfully. No addresses added to mitigation");
+                    logger.Log("There aren't addresses in the current mailing list!");
+                    notification = await telegramNotificator.Notify($"{progName} stopped succesfully. No addresses added to the mitigation: there aren't addresses in the current mailing list.");
                 }
 
                 logger.Log("Exiting");

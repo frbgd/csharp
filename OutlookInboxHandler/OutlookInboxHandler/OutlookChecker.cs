@@ -9,17 +9,26 @@ namespace OutlookInboxHandler
 {
     public class OutlookChecker
     {
+        int _treshold;
         string _mailFolderPath;
         string _windowsFolderPath;
         NameSpace _NS;
         Folder _folder;
         Logger _logger;
 
-        public OutlookChecker(string mailFolderPath, string windowsFolderPath, Logger logger)
+        public int messagesNumber { get; set; }
+        public int attachmentsNumber { get; set; }
+
+
+        public OutlookChecker(int treshold, string mailFolderPath, string windowsFolderPath, Logger logger)
         {
+            _treshold = treshold;
             _mailFolderPath = mailFolderPath;
             _windowsFolderPath = windowsFolderPath;
             _logger = logger;
+
+            messagesNumber = 0;
+            attachmentsNumber = 0;
 
             _logger.Log("Connecting to Outlook...");
             _NS = (Marshal.GetActiveObject("Outlook.Application") as Application).GetNamespace("MAPI");    //здесь может выброситься ex.Source == "mscorlib"
@@ -80,16 +89,16 @@ namespace OutlookInboxHandler
         public void GetAddressesFromOutlook(ref List<string> addresses)
         {
             _logger.Log("Messages Scanning started");
-            int messageNumber = 0;
             foreach (MailItem mailItem in _folder.Items)
             {
                 if (mailItem.ReceivedTime.Year == DateTime.Now.Year && mailItem.ReceivedTime.DayOfYear == DateTime.Now.DayOfYear && mailItem.ReceivedTime.Hour == DateTime.Now.Hour)
                 {
-                    _logger.Log($"Message {++messageNumber}");
+                    _logger.Log($"Message {++messagesNumber}");
                     if (mailItem.Attachments.Count > 0)
                     {
                         foreach (Attachment txt in mailItem.Attachments)
                         {
+                            attachmentsNumber++;
                             _logger.Log($"Saving attachment in the file {_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt...");
                             var path = $"{_windowsFolderPath}\\{mailItem.ConversationTopic}_{DateTime.Now.ToString("yyyy-MM-dd HH")}h.txt";
                             txt.SaveAsFile(path);
@@ -106,7 +115,7 @@ namespace OutlookInboxHandler
                                     {
                                         break;
                                     }
-                                    if (Convert.ToInt32(splitLine[0]) >= 1000)
+                                    if (Convert.ToInt32(splitLine[0]) >= _treshold)
                                     {
                                         addresses.Add(splitLine[1]);
                                         _logger.Log($"Address {splitLine[1]} added in list for adding");
@@ -123,7 +132,7 @@ namespace OutlookInboxHandler
                     _logger.Log("Next message");
                 }
             }
-            _logger.Log("Scanning finished");
+            _logger.Log($"Scanning finished");
         }
     }
 }
